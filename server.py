@@ -53,7 +53,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
             # Try to open valid file/directory:
             try:
-                # Opening requested file to get it's contents:
+                # Opening requested file to get its contents:
                 content = open(index, 'r').read()
                 # Getting current working directory and the absolute path of requested index:
                 cwd = os.getcwd()
@@ -80,9 +80,9 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 #     contentType = 'Content-Type: text/html\n'
                 # if index.endswith('.css'):
                 #     contentType = 'Content-Type: text/css\n'
-                if ogIndex.endswith('.html'):
+                if index.endswith('.html'):
                     contentType = 'Content-Type: text/html'
-                if ogIndex.endswith('.css'):
+                if index.endswith('.css'):
                     contentType = 'Content-Type: text/css'
             # If the try block fails then we just update status code to 404 OR check to see if we need to handle a 301 code:
             except:
@@ -90,7 +90,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 # If there's no '/' at the end of the requested index then we must give 301 code and route the url properly:
                 if ogIndex[-1] != '/':
                     statusCode = '301 Moved Permanently'
-                    location = 'Location: ' + ogIndex + '/' +'\n\n'
+                    location = 'Location: ' + ogIndex + '/' +'\n'
 
         response = self.respond(version, statusCode, location, contentType, content)
         print(response)
@@ -98,7 +98,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
 
     def respond(self, version, statusCode, location, contentType, content):
-        response = version + ' ' + statusCode + '\n' + location + contentType + content + '\n'
+        response = version + ' ' + statusCode + '\n' + location + contentType + '\n' + content + '\n'
         return response
 
 if __name__ == "__main__":
