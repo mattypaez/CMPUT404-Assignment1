@@ -1,5 +1,5 @@
 #  coding: utf-8 
-import socketserver
+import socketserver, os
 
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
@@ -28,11 +28,78 @@ import socketserver
 
 
 class MyWebServer(socketserver.BaseRequestHandler):
-    
+
     def handle(self):
-        self.data = self.request.recv(1024).strip()
-        print ("Got a request of: %s\n" % self.data)
-        self.request.sendall(bytearray("OK",'utf-8'))
+        # Initializing variables to be used later:
+        content = ''
+        contentType = ''
+        location = ''
+
+        # Handling recieved data:
+        self.data = self.request.recv(1024).strip().decode('utf-8')
+        data = self.data.splitlines()[0].split()
+        method, ogIndex, version = data[0], data[1], data[2]
+        print ('Got a request of: %s\n' % self.data)
+
+        # Handling method; and main chunk of code:
+        if method != 'GET':
+            statusCode = '405 Method Not Allowed'
+        else:
+            # Serving from www and serving index.html from directories:
+            index = ogIndex
+            if index[-1] == '/':
+                index += 'index.html'
+            index = 'www' + index
+
+            # Try to open valid file/directory:
+            try:
+                # Opening requested file to get it's contents:
+                content = open(index, 'r').read()
+                # Getting current working directory and the absolute path of requested index:
+                cwd = os.getcwd()
+                absPath = os.path.abspath(ogIndex)
+                path = cwd + '/www/' + absPath
+                # Checking if the path is not a directory:
+                if os.path.isdir(path) == False:
+                    # Checking if the path is not a file:
+                    if os.path.isfile(path) == False:  
+                        statusCode = '404 Page Not Found'
+                        # ** Need these next two lines or else we get a max header error, not sure why. Should ask prof **                         
+                        content = ''
+                        contentType = ''
+                    else:
+                        # if index.endswith('.html'):
+                        #     contentType = 'Content-Type: text/html\n\n'
+                        # if index.endswith('.css'):
+                        #     contentType = 'Content-Type: text/css\n\n'
+                        statusCode = '200 OK'
+                else:
+                    statusCode = '200 OK'
+
+                # if index.endswith('.html'):
+                #     contentType = 'Content-Type: text/html\n'
+                # if index.endswith('.css'):
+                #     contentType = 'Content-Type: text/css\n'
+                if ogIndex.endswith('.html'):
+                    contentType = 'Content-Type: text/html'
+                if ogIndex.endswith('.css'):
+                    contentType = 'Content-Type: text/css'
+            # If the try block fails then we just update status code to 404 OR check to see if we need to handle a 301 code:
+            except:
+                statusCode = '404 Page Not Found' 
+                # If there's no '/' at the end of the requested index then we must give 301 code and route the url properly:
+                if ogIndex[-1] != '/':
+                    statusCode = '301 Moved Permanently'
+                    location = 'Location: ' + ogIndex + '/' +'\n\n'
+
+        response = self.respond(version, statusCode, location, contentType, content)
+        print(response)
+        self.request.sendall(bytearray(response, 'utf-8'))
+
+
+    def respond(self, version, statusCode, location, contentType, content):
+        response = version + ' ' + statusCode + '\n' + location + contentType + content + '\n'
+        return response
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
