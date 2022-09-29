@@ -68,22 +68,16 @@ class MyWebServer(socketserver.BaseRequestHandler):
                         content = ''
                         contentType = ''
                     else:
-                        # if index.endswith('.html'):
-                        #     contentType = 'Content-Type: text/html\n\n'
-                        # if index.endswith('.css'):
-                        #     contentType = 'Content-Type: text/css\n\n'
                         statusCode = '200 OK'
                 else:
                     statusCode = '200 OK'
 
-                # if index.endswith('.html'):
-                #     contentType = 'Content-Type: text/html\n'
-                # if index.endswith('.css'):
-                #     contentType = 'Content-Type: text/css\n'
+                # Handling the mime-types for html and css:
                 if index.endswith('.html'):
                     contentType = 'Content-Type: text/html'
                 if index.endswith('.css'):
                     contentType = 'Content-Type: text/css'
+
             # If the try block fails then we just update status code to 404 OR check to see if we need to handle a 301 code:
             except:
                 statusCode = '404 Page Not Found' 
@@ -98,7 +92,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
 
     def respond(self, version, statusCode, location, contentType, content):
-        response = version + ' ' + statusCode + '\n' + location + contentType + '\n' + content + '\n'
+        response = version + ' ' + statusCode + '\n' + location + contentType + '\n\n' + content + '\n'
         return response
 
 if __name__ == "__main__":
